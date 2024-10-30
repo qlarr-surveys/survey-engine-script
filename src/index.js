@@ -34,13 +34,13 @@ function isSafeCode(code, allowedVariables) {
     if (
       ast.type != "Program" ||
       ast.body.length !== 1 ||
-      (ast.body[0]?.type !== "ExpressionStatement" && ast.body[0]?.type !== "Literal")
+      ast.body[0]?.type !== "ExpressionStatement"
     ) {
       return [
         {
-          message: "This script must be either a single ExpressionStatement or a Literal",
+          message: "This script must be a single ExpressionStatement",
           start: 0,
-          end: code.length - 1
+          end: code.length,
         },
       ];
     }
@@ -52,7 +52,7 @@ function isSafeCode(code, allowedVariables) {
       {
         message: "Fatal error - could not parse",
         start: 0,
-        end: code.length - 1,
+        end: code.length,
       },
     ];
   }

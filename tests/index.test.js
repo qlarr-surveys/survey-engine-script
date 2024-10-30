@@ -206,6 +206,7 @@ test("IF statement is not allowed", () => {
 });
 
 test("loops not allowed", () => {
+  expect(validateInstruction("\"\"")).toStrictEqual([]);
   expect(validateInstruction("while(true){1}")).toStrictEqual([
     {
       end: 14,
