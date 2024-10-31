@@ -1,5 +1,5 @@
 
-# Script Validation Library for Qlarr Surveys
+# Qlarr Survey Engine Script Syntax
 
 This library defines and validates the **dynamic instructions** used in survey design for the [Expression Manager](https://github.com/qlarr-surveys/survey-engine) within the [Qlarr Surveys](https://github.com/qlarr-surveys/survey-engine) platform. These dynamic instructions are written as single JavaScript expressions that return a value, enabling custom survey behavior, such as showing or hiding questions based on answers or counting the words in a response to warn if they are too few.
 
