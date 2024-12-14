@@ -12,7 +12,7 @@ export const identifiersWithStaticMethods = [
   "QlarrScripts",
 ];
 export const identifiersWithStaticProperties = ["Number", "Math"];
-export const dateStaticMethods = ["now", "parse", "UTC"];
+export const dateStaticMethods = ["now", "parse", "UTC", "RegExp"];
 export const mathStaticMethods = [
   "abs",
   "acos",

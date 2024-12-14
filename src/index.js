@@ -66,6 +66,7 @@ function isSafe(node, allowedVariables, extraParams = []) {
     case "BlockStatement":
       return validateProgram(node, allowedVariables, extraParams);
     // if expression validate by expression type
+    case "ChainExpression":
     case "ExpressionStatement":
       return isSafe(node.expression, allowedVariables, extraParams);
     case "Identifier":

@@ -78,6 +78,7 @@ test("function and arrow function excpressions are allowed", () => {
   );
 });
 
+
 test("Some static methods are allowed", () => {
   expect(validateInstruction("Number.isFinite(1/0)")).toStrictEqual([]);
   expect(validateInstruction("Math.abs(-1)")).toStrictEqual([]);
@@ -87,6 +88,12 @@ test("Some static methods are allowed", () => {
   ).toStrictEqual([]);
   expect(
     validateInstruction("QlarrScripts.isVoid(Q1.value)", ["Q1.value"])
+  ).toStrictEqual([]);
+  expect(
+    validateInstruction('((Q3.value && Q3.value.contains("1")))', ["Q3.value"])
+  ).toStrictEqual([]);
+  expect(
+    validateInstruction('Q3.value?.contains("1")', ["Q3.value"])
   ).toStrictEqual([]);
 });
 
