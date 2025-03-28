@@ -313,7 +313,19 @@ function isSafeInstanceProperty(propertyNode) {
 }
 
 function isSafeInstanceMethod(propertyNode) {
-  return allowedMethods.indexOf(propertyNode.name) > -1;
+  if (allowedMethods.indexOf(propertyNode.name) == -1) {
+    return [
+      {
+        message:
+          "Unidentified instance method: " +
+          propertyNode.name,
+        start: propertyNode.start,
+        end: propertyNode.end,
+      },
+    ];
+  } else {
+    return [];
+  }
 }
 
 function isStaticMethod(calleeNode) {

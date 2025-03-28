@@ -1,4 +1,3 @@
-
 export const allowedIdentifiers = ["undefined", "NaN", "Infinity", "-Infinity"];
 export const unaryOperators = ["+", "-", "!", "~", "typeof"];
 
@@ -124,6 +123,7 @@ export const allowedMethods = [
 
   // Array methods
   "at", // Array
+  "contains", // Array
   "filter", // Array
   "find", // Array
   "findIndex", // Array
@@ -133,6 +133,7 @@ export const allowedMethods = [
   "indexOf", // Array
   "keys", // Array
   "lastIndexOf", // Array
+  "length", // Array
   "map", // Array
   "pop", // Array
   "push", // Array
@@ -160,7 +161,6 @@ export const allowedMethods = [
   "matchAll", // String
   "padEnd", // String
   "padStart", // String
-  "repeat", // String
   "replace", // String
   "replaceAll", // String
   "search", // String

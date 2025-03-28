@@ -78,7 +78,6 @@ test("function and arrow function excpressions are allowed", () => {
   );
 });
 
-
 test("Some static methods are allowed", () => {
   expect(validateInstruction("Number.isFinite(1/0)")).toStrictEqual([]);
   expect(validateInstruction("Math.abs(-1)")).toStrictEqual([]);
@@ -111,6 +110,13 @@ test("instance methods are allowed", () => {
       end: 6,
       message: "kabaka is not defined",
       start: 0,
+    },
+  ]);
+  expect(validateInstruction('"a".repeat(5)')).toStrictEqual([
+    {
+      end: 10,
+      message: "Unidentified instance method: repeat",
+      start: 4,
     },
   ]);
 });
