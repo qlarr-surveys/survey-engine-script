@@ -69,6 +69,7 @@ export const qlarrStaticMethods = [
   "isNotVoid",
   "wordCount",
   "hasDuplicates",
+  "stripTags"
 ];
 export const numberStaticMethods = [
   "isFinite",
