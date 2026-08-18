@@ -96,6 +96,30 @@ test("Some static methods are allowed", () => {
   ).toStrictEqual([]);
 });
 
+test("QlarrScripts static methods are validated against the allowlist", () => {
+  // allowlisted methods are accepted
+  expect(validateInstruction("QlarrScripts.wordCount('a b c')")).toStrictEqual(
+    []
+  );
+  // unknown methods on QlarrScripts are rejected (not silently accepted)
+  expect(validateInstruction("QlarrScripts.bogusMethod(1)")).toStrictEqual([
+    {
+      end: 24,
+      message: "Unidentified method name for QlarrScripts: bogusMethod",
+      start: 13,
+    },
+  ]);
+  expect(
+    validateInstruction('QlarrScripts.constructor("return 1")')
+  ).toStrictEqual([
+    {
+      end: 24,
+      message: "Unidentified method name for QlarrScripts: constructor",
+      start: 13,
+    },
+  ]);
+});
+
 test("instance methods are allowed", () => {
   expect(validateInstruction("Q1.value.length()", ["Q1.value"])).toStrictEqual(
     []
