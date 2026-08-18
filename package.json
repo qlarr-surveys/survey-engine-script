@@ -1,6 +1,6 @@
 {
   "name": "@qlarr/survey-engine-script",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Validates the dynamic instruction scripts used in Qlarr survey designs. Parses each instruction to an AST (via acorn) and enforces a strict allowlist of permitted nodes, identifiers, properties, and methods.",
   "keywords": [
     "qlarr",
