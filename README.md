@@ -35,7 +35,32 @@ This Library exposes one function: `function validateCode(instructionList)`
    - start, end: locations of the error within the instruction script
 
 
-## Usage
+## Install
+
+```bash
+npm install @qlarr/survey-engine-script
+```
+
+ESM:
+
+```js
+import { validateCode } from "@qlarr/survey-engine-script";
+```
+
+CommonJS (the module's default export is the function itself):
+
+```js
+const validateCode = require("@qlarr/survey-engine-script");
+```
+
+The package also ships a self-contained UMD bundle (global `EMScript`) at
+`@qlarr/survey-engine-script/dist/survey-engine-script.min.js`. This is the
+artifact the survey-engine loads as a resource and evaluates directly inside its
+JS sandbox (GraalJS on JVM, JavaScriptCore on iOS, `new Function` on web), where
+it is called as `EMScript.validateCode(...)`.
+
+
+## Local development / Usage
 
 This library is used in script-engine module, inside [Expression Manager](https://github.com/qlarr-surveys/survey-engine) to validate the custom dynamic instructions in survey designs.
 

@@ -1,4 +1,44 @@
 {
+  "name": "@qlarr/survey-engine-script",
+  "version": "0.2.0",
+  "description": "Validates the dynamic instruction scripts used in Qlarr survey designs. Parses each instruction to an AST (via acorn) and enforces a strict allowlist of permitted nodes, identifiers, properties, and methods.",
+  "keywords": [
+    "qlarr",
+    "survey",
+    "ast",
+    "acorn",
+    "validation",
+    "sandbox",
+    "expression"
+  ],
+  "license": "MIT",
+  "author": "Amr Askoura",
+  "homepage": "https://github.com/qlarr-surveys/survey-engine-script#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/qlarr-surveys/survey-engine-script.git"
+  },
+  "bugs": {
+    "url": "https://github.com/qlarr-surveys/survey-engine-script/issues"
+  },
+  "main": "dist/survey-engine-script.min.js",
+  "module": "dist/survey-engine-script.esm.mjs",
+  "unpkg": "dist/survey-engine-script.min.js",
+  "exports": {
+    ".": {
+      "import": "./dist/survey-engine-script.esm.mjs",
+      "require": "./dist/survey-engine-script.min.js",
+      "default": "./dist/survey-engine-script.min.js"
+    },
+    "./dist/survey-engine-script.min.js": "./dist/survey-engine-script.min.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "acorn": "^8.12.1"
   },
@@ -14,6 +54,7 @@
   },
   "scripts": {
     "build": "rollup -c rollup.config.mjs",
-    "test": "jest"
+    "test": "jest",
+    "prepublishOnly": "npm run build && npm test"
   }
 }

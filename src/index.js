@@ -389,12 +389,12 @@ function isSafeStaticFunction(calleeNode) {
       } else {
         return [];
       }
-    case "FrankieScripts":
+    case "QlarrScripts":
       if (qlarrStaticMethods.indexOf(calleeNode.property.name) == -1) {
         return [
           {
             message:
-              "Unidentified method name for frankieStaticMethods: " +
+              "Unidentified method name for QlarrScripts: " +
               calleeNode.property.name,
             start: calleeNode.property.start,
             end: calleeNode.property.end,

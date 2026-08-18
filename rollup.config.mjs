@@ -6,10 +6,18 @@ export default {
   input: 'src/index.js',  // Your entry point
   output: [
     {
-      file: 'dist/survey-engine-script.min.js',  // UMD format, minified
+      // Self-contained UMD bundle (global `EMScript`). This is the artifact the
+      // survey-engine (JVM/iOS/browser) loads as a resource and evals directly,
+      // so its filename and global name must not change.
+      file: 'dist/survey-engine-script.min.js',
       format: 'umd',
       name: 'EMScript',
       plugins: [terser()],
+    },
+    {
+      // ESM build for JS consumers using `import { validateCode }`.
+      file: 'dist/survey-engine-script.esm.mjs',
+      format: 'es',
     }
   ],
   plugins: [
