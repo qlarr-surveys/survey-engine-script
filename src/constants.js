@@ -148,6 +148,7 @@ export const allowedMethods = new Map([
   ["test", null], // RegExp
   ["at", null], // Array
   ["contains", null], // Array
+  ["every", 0], // Array
   ["filter", 0], // Array
   ["find", 0], // Array
   ["findIndex", 0], // Array

@@ -94,6 +94,15 @@ test("generated masked_value instructions are allowed", () => {
   ).toStrictEqual([]);
 });
 
+test("generated validation_list instructions are allowed", () => {
+  expect(
+    validateInstruction(
+      'QlarrScripts.isVoid(Q1.value) || Q1.value.every(element => ["A1","A2","A3"].includes(element))',
+      ["Q1.value"]
+    )
+  ).toStrictEqual([]);
+});
+
 test("Some static methods are allowed", () => {
   expect(validateInstruction("Number.isFinite(1/0)")).toStrictEqual([]);
   expect(validateInstruction("Math.abs(-1)")).toStrictEqual([]);

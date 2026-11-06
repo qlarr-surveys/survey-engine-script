@@ -6419,6 +6419,8 @@ var allowedMethods = new Map([["toString", null],
 // Array
 ["contains", null],
 // Array
+["every", 0],
+// Array
 ["filter", 0],
 // Array
 ["find", 0],
