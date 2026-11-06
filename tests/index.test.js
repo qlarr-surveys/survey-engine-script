@@ -68,20 +68,30 @@ test("All global methods are not allowedd", () => {
   ]);
 });
 
-test("only arrow functions are allowed", () => {
+test("function and arrow function callbacks are allowed", () => {
   expect(
     validateInstruction("[1,2,3,4,5].filter(function(x){return x%2==0})")
-  ).toStrictEqual([
-    {
-      end: 45,
-      message: "Only arrow functions are allowed",
-      start: 19,
-    },
-  ]);
+  ).toStrictEqual([]);
 
   expect(validateInstruction("[1,2,3,4,5].filter(x => x%2==0)")).toStrictEqual(
     []
   );
+});
+
+test("generated masked_value instructions are allowed", () => {
+  expect(
+    validateInstruction(
+      'QlarrScripts.listStrings((Qas.value || []).map(function(el){return QlarrScripts.safeAccess({"A1": QlarrScripts.stripTags(QasA1.label),"A2": QlarrScripts.stripTags(QasA2.label),"A3": QlarrScripts.stripTags(QasA3.label),"A4": QlarrScripts.stripTags(QasA4.label)},el)}), Survey.lang)',
+      [
+        "Qas.value",
+        "QasA1.label",
+        "QasA2.label",
+        "QasA3.label",
+        "QasA4.label",
+        "Survey.lang",
+      ]
+    )
+  ).toStrictEqual([]);
 });
 
 test("Some static methods are allowed", () => {

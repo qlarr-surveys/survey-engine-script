@@ -138,13 +138,6 @@ function isSafe(node, allowedVariables, extraParams = []) {
       );
 
     case "FunctionExpression":
-      return [
-        {
-          message: "Only arrow functions are allowed",
-          start: node.start,
-          end: node.end,
-        },
-      ];
     case "ArrowFunctionExpression":
       return [
         {
@@ -375,7 +368,10 @@ function isSafe(node, allowedVariables, extraParams = []) {
 }
 
 function isCallback(node, methodNode, index) {
-  if (node.type != "ArrowFunctionExpression") {
+  if (
+    node.type != "ArrowFunctionExpression" &&
+    node.type != "FunctionExpression"
+  ) {
     return false;
   }
   return allowedMethods.get(methodNode.name) === index;
@@ -393,6 +389,24 @@ function isSafeCallback(node, allowedVariables, extraParams) {
     return [
       {
         message: "Async functions are not allowed",
+        start: node.start,
+        end: node.end,
+      },
+    ];
+  }
+  if (node.generator) {
+    return [
+      {
+        message: "Generator functions are not allowed",
+        start: node.start,
+        end: node.end,
+      },
+    ];
+  }
+  if (node.id) {
+    return [
+      {
+        message: "Named functions are not allowed",
         start: node.start,
         end: node.end,
       },

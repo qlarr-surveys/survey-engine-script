@@ -6386,7 +6386,7 @@ var binaryOperators = ["==", "!=", "===", "!==", "<", "<=", ">", ">=", "+", "-",
 var identifiersWithNew = ["Date", "RegExp"];
 var identifiersWithStaticMethods = ["Date", "Number", "Math", "Object", "QlarrScripts"];
 var identifiersWithStaticProperties = ["Number", "Math"];
-var reservedParams = ["arguments", "eval"].concat(allowedIdentifiers, identifiersWithNew, identifiersWithStaticMethods);
+var reservedParams = [].concat(allowedIdentifiers, identifiersWithNew, identifiersWithStaticMethods);
 var dateStaticMethods = ["now", "parse", "UTC", "RegExp"];
 var mathStaticMethods = ["abs", "acos", "acosh", "asin", "asinh", "atan", "atan2", "atanh", "cbrt", "ceil", "clz32", "cos", "cosh", "exp", "expm1", "f16round", "floor", "fround", "hypot", "imul", "log", "log10", "log1p", "log2", "max", "min", "pow", "random", "round", "sign", "sin", "sinh", "sqrt", "tan", "tanh", "trunc"];
 var qlarrStaticMethods = ["separator", "safeAccess", "and", "isValidSqlDateTime", "listStrings", "isValidTime", "isValidDay", "sqlDateTimeToDate", "formatSqlDate", "formatTime", "dateStringToDate", "toSqlDateTimeIgnoreTime", "toSqlDateTime", "toSqlDateTimeIgnoreDate", "isVoid", "isNotVoid", "wordCount", "hasDuplicates", "stripTags"];
@@ -6671,11 +6671,6 @@ function isSafe(node, allowedVariables) {
         return isSafe(element, allowedVariables, extraParams);
       })));
     case "FunctionExpression":
-      return [{
-        message: "Only arrow functions are allowed",
-        start: node.start,
-        end: node.end
-      }];
     case "ArrowFunctionExpression":
       return [{
         message: "Functions are only allowed as callbacks",
@@ -6837,7 +6832,7 @@ function isSafe(node, allowedVariables) {
   }
 }
 function isCallback(node, methodNode, index) {
-  if (node.type != "ArrowFunctionExpression") {
+  if (node.type != "ArrowFunctionExpression" && node.type != "FunctionExpression") {
     return false;
   }
   return allowedMethods.get(methodNode.name) === index;
@@ -6851,6 +6846,20 @@ function isSafeCallback(node, allowedVariables, extraParams) {
   if (node.async) {
     return [{
       message: "Async functions are not allowed",
+      start: node.start,
+      end: node.end
+    }];
+  }
+  if (node.generator) {
+    return [{
+      message: "Generator functions are not allowed",
+      start: node.start,
+      end: node.end
+    }];
+  }
+  if (node.id) {
+    return [{
+      message: "Named functions are not allowed",
       start: node.start,
       end: node.end
     }];

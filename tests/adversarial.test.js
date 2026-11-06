@@ -210,15 +210,26 @@ const rejected = {
     "[1].map((a) => a.map((b) => b.map((c) => c.map((d) => d))))",
     "[1].map((a) => [1].map((b) => [1].map((c) => [1].filter((d) => d))))",
   ],
-  "only plain arrow functions": [
-    "[1].map(function(x){ return x * 2; })",
-    "[1, 2].filter(function(x){ return x; })",
-    "'a'.replace(/a/, function(m){ return m; })",
+  "only plain callbacks": [
     "[1].map(async (x) => x)",
     "[1].map(async (x) => { return x; })",
     "[1].map(async function(x){ return x; })",
     "[1].map(function*(x){ return x; })",
     "[1].map(function process(x){ return x; })",
+    "[1].map(function f(x){ return f(x); })",
+  ],
+  "function callbacks get no extra scope": [
+    "[1].map(function(x){ return this; })",
+    "[1].map(function(x){ return arguments; })",
+    "[1].map(function(x){ return arguments.callee; })",
+    "[1].map(function(x){ return new.target; })",
+    "[1].map(function(x){ return process; })",
+    "[1].map(function(Math){ return Math; })",
+    "[1].map(function(...x){ return x; })",
+    "[1].map(function(x){ 'use strict'; return x; })",
+    "[1].map(function(x){ var y = x; return y; })",
+    "[1].map(function(x){ if (x) { return 1; } })",
+    "[1].map(function(a){ return [1].map(function(b){ return [1].map(function(c){ return [1].map(function(d){ return d; }); }); }); })",
   ],
   "object keys": [
     "({ ['__proto__']: 1 })",
@@ -249,7 +260,15 @@ const rejected = {
   "functions as values": [
     "(x) => x",
     "(function(x){ return x; })",
+    "(function(x){ return x; })(1)",
     "[(x) => x]",
+    "[function(x){ return x; }]",
+    "[].concat(function(x){ return x; })",
+    "[1].map(function(x){ return function(y){ return y; }; })",
+    "[1].find(function(x){ return x; }, function(y){ return y; })",
+    "Math.max(function(x){ return x; })",
+    "QlarrScripts.isVoid(function(x){ return x; })",
+    "new Date(function(x){ return x; })",
     "({ 'map': (x) => x }).map(1)",
     "({ 'map': 1 ? (x) => x : 0 }).map(1)",
     "({ 'map': 0 || ((x) => x) }).map(1)",
@@ -297,6 +316,10 @@ const accepted = [
   "Q1.value ? 1 : 2",
   "[1].map((x) => x * 2)",
   "[1].map((x) => { return x * 2; })",
+  "[1].map(function(x){ return x * 2; })",
+  "[1, 2].filter(function(x, i){ return i > 0; })",
+  "'a'.replace(/a/, function(m){ return m; })",
+  "[1].map(function(a){ return [2].map((b) => a + b); })",
   "[1, 2].filter((x, i) => i > 0)",
   "[1].map((a) => [2].map((b) => a + b))",
   "[1].map((a) => [2].filter((b) => b).map((c) => a))",
@@ -352,24 +375,29 @@ describe("accepted", () => {
   });
 });
 
-describe("every allowed method only takes a function where it declares one", () => {
-  const callWithFunctionAt = (method, position) => {
-    const args = [0, 1, 2].map((i) => (i == position ? "(x) => x" : "1"));
-    return `[1].${method}(${args.join(", ")})`;
-  };
+describe.each(["(x) => x", "function(x){ return x; }"])(
+  "every allowed method only takes %s where it declares one",
+  (fn) => {
+    const callWithFunctionAt = (method, position) => {
+      const args = [0, 1, 2].map((i) => (i == position ? fn : "1"));
+      return `[1].${method}(${args.join(", ")})`;
+    };
 
-  test.each([...allowedMethods.entries()])("%s", (method, callbackIndex) => {
-    [0, 1, 2].forEach((position) => {
-      const errors = validateInstruction(callWithFunctionAt(method, position));
-      if (position === callbackIndex) {
-        expect(errors).toStrictEqual([]);
-      } else {
-        expect(errors).toEqual([
-          expect.objectContaining({
-            message: "Functions are only allowed as callbacks",
-          }),
-        ]);
-      }
+    test.each([...allowedMethods.entries()])("%s", (method, callbackIndex) => {
+      [0, 1, 2].forEach((position) => {
+        const errors = validateInstruction(
+          callWithFunctionAt(method, position)
+        );
+        if (position === callbackIndex) {
+          expect(errors).toStrictEqual([]);
+        } else {
+          expect(errors).toEqual([
+            expect.objectContaining({
+              message: "Functions are only allowed as callbacks",
+            }),
+          ]);
+        }
+      });
     });
-  });
-});
+  }
+);
