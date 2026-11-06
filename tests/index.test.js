@@ -18,7 +18,7 @@ test("some javascript built-in Identifiers are accepted", () => {
 test("Identifiers are allowed only, if they were params in a function expression", () => {
   expect(
     validateInstruction(
-      "[1, 2, 3].filter(function(x) { return x % 2 === 0; });"
+      "[1, 2, 3].filter((x) => { return x % 2 === 0; });"
     )
   ).toStrictEqual([]);
 });
@@ -68,10 +68,16 @@ test("All global methods are not allowedd", () => {
   ]);
 });
 
-test("function and arrow function excpressions are allowed", () => {
+test("only arrow functions are allowed", () => {
   expect(
     validateInstruction("[1,2,3,4,5].filter(function(x){return x%2==0})")
-  ).toStrictEqual([]);
+  ).toStrictEqual([
+    {
+      end: 45,
+      message: "Only arrow functions are allowed",
+      start: 19,
+    },
+  ]);
 
   expect(validateInstruction("[1,2,3,4,5].filter(x => x%2==0)")).toStrictEqual(
     []
@@ -125,9 +131,9 @@ test("instance methods are allowed", () => {
     []
   );
   expect(validateInstruction("[1,2,3,4,5].length()")).toStrictEqual([]);
-  expect(
-    validateInstruction("[1,2,3,4,5].filter(function(x){return x%2==0})")
-  ).toStrictEqual([]);
+  expect(validateInstruction("[1,2,3,4,5].filter((x)=>x%2==0)")).toStrictEqual(
+    []
+  );
   expect(validateInstruction('"kabaka".charAt(20)')).toStrictEqual([]);
   expect(validateInstruction("kabaka.charAt(20)")).toStrictEqual([
     {
@@ -231,13 +237,13 @@ test("ConditionalExpression are allowed", () => {
 test("IF statement is not allowed", () => {
   expect(
     validateInstruction(
-      "[1,2,3,4].filter(function(x){if(x%2==0){return true} else {return false}})"
+      "[1,2,3,4].filter((x)=>{if(x%2==0){return true} else {return false}})"
     )
   ).toStrictEqual([
     {
-      end: 72,
+      end: 66,
       message: "If statements are not allowed",
-      start: 29,
+      start: 23,
     },
   ]);
 });
@@ -319,6 +325,51 @@ test("variable and function declarations, assignments and updates are not allowe
       start: 0,
     },
   ]);
+});
+
+test("function params must be simple identifiers", () => {
+  const rejected = [
+    "['x'].map((a,b,c,d=(Q1.value = process.env.X))=>Q1.value)",
+    "[1].map((a,b,c,d=process.env)=>0)",
+    "[{}].map(({x = 1}) => 0)",
+    "[[]].map(([x]) => 0)",
+    "[1].map((...r) => 0)",
+    "[1].map((a = 1) => a)",
+    "[1].map((a = process.env) => { return a; })",
+  ];
+  rejected.forEach((script) => {
+    expect(validateInstruction(script, ["Q1.value"])).toEqual([
+      expect.objectContaining({
+        message: "Only simple identifier parameters are allowed",
+      }),
+    ]);
+  });
+});
+
+test("simple identifier params are still accepted in callbacks", () => {
+  expect(validateInstruction("[1,2,3].map((x) => x * 2)")).toStrictEqual([]);
+  expect(validateInstruction("[1,2,3].filter((x, i) => i > 0)")).toStrictEqual(
+    []
+  );
+  expect(
+    validateInstruction("[1,2,3].reduce((acc, x) => acc + x)")
+  ).toStrictEqual([]);
+});
+
+test("computed callees are not allowed", () => {
+  const rejected = [
+    "['constructor'].map((keys)=>[1].map(Object[keys]('return process.env.X')))",
+    "['constructor'].map((abs)=>Math[abs]('x'))",
+    "['constructor'].map((map)=>[1][map]('x'))",
+    "[1]['map']((x) => x)",
+  ];
+  rejected.forEach((script) => {
+    expect(validateInstruction(script)).toEqual([
+      expect.objectContaining({
+        message: "Computed member expressions are not allowed",
+      }),
+    ]);
+  });
 });
 
 const validateInstruction = (script, allowedVariables = []) => {

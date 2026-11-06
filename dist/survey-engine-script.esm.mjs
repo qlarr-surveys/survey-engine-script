@@ -6380,14 +6380,16 @@ function parse(input, options) {
 
 var allowedIdentifiers = ["undefined", "NaN", "Infinity", "-Infinity"];
 var unaryOperators = ["+", "-", "!", "~", "typeof"];
+var binaryOperators = ["==", "!=", "===", "!==", "<", "<=", ">", ">=", "+", "-", "*", "/", "%", "**", "&", "|", "^", "<<", ">>", ">>>", "&&", "||", "??"];
 
 // static methods
 var identifiersWithNew = ["Date", "RegExp"];
 var identifiersWithStaticMethods = ["Date", "Number", "Math", "Object", "QlarrScripts"];
 var identifiersWithStaticProperties = ["Number", "Math"];
+var reservedParams = ["arguments", "eval"].concat(allowedIdentifiers, identifiersWithNew, identifiersWithStaticMethods);
 var dateStaticMethods = ["now", "parse", "UTC", "RegExp"];
 var mathStaticMethods = ["abs", "acos", "acosh", "asin", "asinh", "atan", "atan2", "atanh", "cbrt", "ceil", "clz32", "cos", "cosh", "exp", "expm1", "f16round", "floor", "fround", "hypot", "imul", "log", "log10", "log1p", "log2", "max", "min", "pow", "random", "round", "sign", "sin", "sinh", "sqrt", "tan", "tanh", "trunc"];
-var qlarrStaticMethods = ["separator", "safeAccess", "and", "isValidSqlDateTime", "listStrings", "isValidTime", "isValidDay", "sqlDateTimeToDate", "formatSqlDate", "formatTime", "dateStringToDate", "toSqlDateTimeIgnoreTime", "toSqlDateTime", "toSqlDateTimeIgnoreDate", "isVoid", "isNotVoid", "wordCount", "hasDuplicates"];
+var qlarrStaticMethods = ["separator", "safeAccess", "and", "isValidSqlDateTime", "listStrings", "isValidTime", "isValidDay", "sqlDateTimeToDate", "formatSqlDate", "formatTime", "dateStringToDate", "toSqlDateTimeIgnoreTime", "toSqlDateTime", "toSqlDateTimeIgnoreDate", "isVoid", "isNotVoid", "wordCount", "hasDuplicates", "stripTags"];
 var numberStaticMethods = ["isFinite", "isInteger", "isNaN", "isSafeInteger", "parseFloat", "parseInt"];
 var objectStaticMethods = ["entries", "keys"];
 var mathStaticProperties = ["E", "LN10", "LN2", "LOG10E", "LOG2E", "PI", "SQRT1_2", "SQRT2"];
@@ -6396,225 +6398,197 @@ var allowedProperties = [
 // Array properties
 "length" // Array
 ];
-var allowedMethods = [
-// Object methods
-"toString",
-// Object
-"toLocaleString",
-// Object
 
-// Number methods
-"toExponential",
+// every allowed instance method, mapped to the position of the function
+// argument it invokes without retaining, or null if it takes no function
+var allowedMethods = new Map([["toString", null],
+// Object, RegExp, Array, Date
+["toLocaleString", null],
+// Object, Number, Date
+["toExponential", null],
 // Number
-"toFixed",
+["toFixed", null],
 // Number
-"toLocaleString",
+["toPrecision", null],
 // Number
-"toPrecision",
-// Number
-
-// RegExp methods
-"exec",
+["exec", null],
 // RegExp
-"test",
+["test", null],
 // RegExp
-"toString",
-// RegExp
+["at", null],
+// Array
+["contains", null],
+// Array
+["filter", 0],
+// Array
+["find", 0],
+// Array
+["findIndex", 0],
+// Array
+["findLast", 0],
+// Array
+["findLastIndex", 0],
+// Array
+["includes", null],
+// Array, String
+["indexOf", null],
+// Array, String
+["keys", null],
+// Array
+["lastIndexOf", null],
+// Array, String
+["length", null],
+// Array
+["map", 0],
+// Array
+["pop", null],
+// Array
+["push", null],
+// Array
+["reduce", 0],
+// Array
+["reduceRight", 0],
+// Array
+["reverse", null],
+// Array
+["shift", null],
+// Array
+["slice", null],
+// Array, String
+["some", 0],
+// Array
+["sort", 0],
+// Array
+["splice", null],
+// Array
+["toReversed", null],
+// Array
+["toSorted", 0],
+// Array
+["toSpliced", null],
+// Array
+["charAt", null],
+// String
+["concat", null],
+// String
+["endsWith", null],
+// String
+["match", null],
+// String
+["matchAll", null],
+// String
+["replace", 1],
+// String
+["replaceAll", 1],
+// String
+["search", null],
+// String
+["split", null],
+// String
+["startsWith", null],
+// String
+["substring", null],
+// String
+["toLowerCase", null],
+// String
+["toUpperCase", null],
+// String
+["trim", null],
+// String
+["trimEnd", null],
+// String
+["trimStart", null],
+// String
+["getDate", null],
+// Date
+["getDay", null],
+// Date
+["getFullYear", null],
+// Date
+["getHours", null],
+// Date
+["getMilliseconds", null],
+// Date
+["getMinutes", null],
+// Date
+["getMonth", null],
+// Date
+["getSeconds", null],
+// Date
+["getTime", null],
+// Date
+["getTimezoneOffset", null],
+// Date
+["getUTCDate", null],
+// Date
+["getUTCDay", null],
+// Date
+["getUTCFullYear", null],
+// Date
+["getUTCHours", null],
+// Date
+["getUTCMilliseconds", null],
+// Date
+["getUTCMinutes", null],
+// Date
+["getUTCMonth", null],
+// Date
+["getUTCSeconds", null],
+// Date
+["setDate", null],
+// Date
+["setFullYear", null],
+// Date
+["setHours", null],
+// Date
+["setMilliseconds", null],
+// Date
+["setMinutes", null],
+// Date
+["setMonth", null],
+// Date
+["setSeconds", null],
+// Date
+["setTime", null],
+// Date
+["setUTCDate", null],
+// Date
+["setUTCFullYear", null],
+// Date
+["setUTCHours", null],
+// Date
+["setUTCMilliseconds", null],
+// Date
+["setUTCMinutes", null],
+// Date
+["setUTCMonth", null],
+// Date
+["setUTCSeconds", null],
+// Date
+["toDateString", null],
+// Date
+["toISOString", null],
+// Date
+["toJSON", null],
+// Date
+["toLocaleDateString", null],
+// Date
+["toLocaleTimeString", null],
+// Date
+["toTimeString", null],
+// Date
+["toUTCString", null] // Date
+]);
 
-// Array methods
-"at",
-// Array
-"contains",
-// Array
-"filter",
-// Array
-"find",
-// Array
-"findIndex",
-// Array
-"findLast",
-// Array
-"findLastIndex",
-// Array
-"includes",
-// Array
-"indexOf",
-// Array
-"keys",
-// Array
-"lastIndexOf",
-// Array
-"length",
-// Array
-"map",
-// Array
-"pop",
-// Array
-"push",
-// Array
-"reduce",
-// Array
-"reduceRight",
-// Array
-"reverse",
-// Array
-"shift",
-// Array
-"slice",
-// Array
-"some",
-// Array
-"sort",
-// Array
-"splice",
-// Array
-"toReversed",
-// Array
-"toSorted",
-// Array
-"toSpliced",
-// Array
-"toString",
-// Array
-
-// String methods
-"charAt",
-// String
-"concat",
-// String
-"endsWith",
-// String
-"includes",
-// String
-"indexOf",
-// String
-"lastIndexOf",
-// String
-"match",
-// String
-"matchAll",
-// String
-"padEnd",
-// String
-"padStart",
-// String
-"replace",
-// String
-"replaceAll",
-// String
-"search",
-// String
-"slice",
-// String
-"split",
-// String
-"startsWith",
-// String
-"substring",
-// String
-"toLowerCase",
-// String
-"toUpperCase",
-// String
-"trim",
-// String
-"trimEnd",
-// String
-"trimStart",
-// String
-
-// Date methods
-"getDate",
-// Date
-"getDay",
-// Date
-"getFullYear",
-// Date
-"getHours",
-// Date
-"getMilliseconds",
-// Date
-"getMinutes",
-// Date
-"getMonth",
-// Date
-"getSeconds",
-// Date
-"getTime",
-// Date
-"getTimezoneOffset",
-// Date
-"getUTCDate",
-// Date
-"getUTCDay",
-// Date
-"getUTCFullYear",
-// Date
-"getUTCHours",
-// Date
-"getUTCMilliseconds",
-// Date
-"getUTCMinutes",
-// Date
-"getUTCMonth",
-// Date
-"getUTCSeconds",
-// Date
-"setDate",
-// Date
-"setFullYear",
-// Date
-"setHours",
-// Date
-"setMilliseconds",
-// Date
-"setMinutes",
-// Date
-"setMonth",
-// Date
-"setSeconds",
-// Date
-"setTime",
-// Date
-"setUTCDate",
-// Date
-"setUTCFullYear",
-// Date
-"setUTCHours",
-// Date
-"setUTCMilliseconds",
-// Date
-"setUTCMinutes",
-// Date
-"setUTCMonth",
-// Date
-"setUTCSeconds",
-// Date
-"toDateString",
-// Date
-"toISOString",
-// Date
-"toJSON",
-// Date
-"toLocaleDateString",
-// Date
-"toLocaleString",
-// Date
-"toLocaleTimeString",
-// Date
-"toString",
-// Date
-"toTimeString",
-// Date
-"toUTCString" // Date
-];
-
+var maxCallbackDepth = 3;
+var callbackDepth = 0;
 function validateCode(instructionList) {
   return JSON.stringify(JSON.parse(instructionList).map(function (instruction) {
     return isSafeCode(instruction.script, instruction.allowedVariables);
   }));
 }
 function isSafeCode(code, allowedVariables) {
+  callbackDepth = 0;
   try {
     var _ast$body$;
     var ast = parse(code, {
@@ -6643,7 +6617,6 @@ function isSafeCode(code, allowedVariables) {
 }
 function isSafe(node, allowedVariables) {
   var extraParams = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [];
-  console.log(node.type);
   switch (node.type) {
     // if program validate body
     case "Program":
@@ -6652,6 +6625,13 @@ function isSafe(node, allowedVariables) {
     // if expression validate by expression type
     case "ChainExpression":
     case "ExpressionStatement":
+      if (node.directive == "use strict") {
+        return [{
+          message: "directives are not allowed",
+          start: node.start,
+          end: node.end
+        }];
+      }
       return isSafe(node.expression, allowedVariables, extraParams);
     case "Identifier":
       if (allowedIdentifiers.indexOf(node.name) == -1 && extraParams.indexOf(node.name) == -1) {
@@ -6671,19 +6651,40 @@ function isSafe(node, allowedVariables) {
           end: node.end
         }];
       }
+      if (node.computed) {
+        return [{
+          message: "Computed keys are not allowed",
+          start: node.start,
+          end: node.end
+        }];
+      }
+      if ((node.key.name || node.key.value) == "__proto__") {
+        return [{
+          message: "__proto__ is not allowed as a key",
+          start: node.start,
+          end: node.end
+        }];
+      }
       return mergeResults(isSafe(node.key, allowedVariables, extraParams), isSafe(node.value, allowedVariables, extraParams));
     case "ObjectExpression":
       return mergeResults.apply(void 0, _toConsumableArray(node.properties.map(function (element) {
         return isSafe(element, allowedVariables, extraParams);
       })));
-    case "ArrowFunctionExpression":
     case "FunctionExpression":
-      var params = node.params.map(function (x) {
-        return x.name;
-      }).concat(extraParams);
-      return isSafe(node.body, allowedVariables, params);
+      return [{
+        message: "Only arrow functions are allowed",
+        start: node.start,
+        end: node.end
+      }];
+    case "ArrowFunctionExpression":
+      return [{
+        message: "Functions are only allowed as callbacks",
+        start: node.start,
+        end: node.end
+      }];
     case "CallExpression":
       var calleeResult = [];
+      var isInstanceCall = false;
       if (node.callee.type == "Identifier") {
         return [{
           message: "global methods are not permitted",
@@ -6696,13 +6697,20 @@ function isSafe(node, allowedVariables) {
           start: node.start,
           end: node.end
         }];
+      } else if (node.callee.computed) {
+        return [{
+          message: "Computed member expressions are not allowed",
+          start: node.callee.start,
+          end: node.callee.end
+        }];
       } else if (isStaticMethod(node.callee)) {
         calleeResult = isSafeStaticFunction(node.callee);
       } else {
+        isInstanceCall = true;
         calleeResult = mergeResults(isSafe(node.callee.object, allowedVariables, extraParams), isSafeInstanceMethod(node.callee.property));
       }
-      var callExpressionArguments = mergeResults.apply(void 0, _toConsumableArray(node.arguments.map(function (element) {
-        return isSafe(element, allowedVariables, extraParams);
+      var callExpressionArguments = mergeResults.apply(void 0, _toConsumableArray(node.arguments.map(function (element, index) {
+        return isInstanceCall && isCallback(element, node.callee.property, index) ? isSafeCallback(element, allowedVariables, extraParams) : isSafe(element, allowedVariables, extraParams);
       })));
       return mergeResults(calleeResult, callExpressionArguments);
     case "MemberExpression":
@@ -6737,6 +6745,13 @@ function isSafe(node, allowedVariables) {
       })));
     // literals are safe on of their own
     case "Literal":
+      if (node.bigint !== undefined) {
+        return [{
+          message: "BigInt literals are not allowed",
+          start: node.start,
+          end: node.end
+        }];
+      }
       return [];
     case "UnaryExpression":
       if (unaryOperators.indexOf(node.operator) == -1) return [{
@@ -6751,6 +6766,13 @@ function isSafe(node, allowedVariables) {
       return isSafe(node.argument, allowedVariables, extraParams);
     case "LogicalExpression":
     case "BinaryExpression":
+      if (binaryOperators.indexOf(node.operator) == -1) {
+        return [{
+          message: node.operator + " operator is not allowed",
+          start: node.start,
+          end: node.end
+        }];
+      }
       return mergeResults(isSafe(node.left, allowedVariables, extraParams), isSafe(node.right, allowedVariables, extraParams));
     case "ConditionalExpression":
       return mergeResults(isSafe(node.test, allowedVariables, extraParams), isSafe(node.consequent, allowedVariables, extraParams), isSafe(node.alternate, allowedVariables, extraParams));
@@ -6814,6 +6836,60 @@ function isSafe(node, allowedVariables) {
       }];
   }
 }
+function isCallback(node, methodNode, index) {
+  if (node.type != "ArrowFunctionExpression") {
+    return false;
+  }
+  return allowedMethods.get(methodNode.name) === index;
+}
+function isReservedParam(name, allowedVariables) {
+  return reservedParams.indexOf(name) > -1 || allowedVariables.some(function (x) {
+    return x.split(".")[0] == name;
+  });
+}
+function isSafeCallback(node, allowedVariables, extraParams) {
+  if (node.async) {
+    return [{
+      message: "Async functions are not allowed",
+      start: node.start,
+      end: node.end
+    }];
+  }
+  var unsafeParam = node.params.find(function (x) {
+    return x.type != "Identifier";
+  });
+  if (unsafeParam) {
+    return [{
+      message: "Only simple identifier parameters are allowed",
+      start: unsafeParam.start,
+      end: unsafeParam.end
+    }];
+  }
+  var reservedParam = node.params.find(function (x) {
+    return isReservedParam(x.name, allowedVariables);
+  });
+  if (reservedParam) {
+    return [{
+      message: reservedParam.name + " is a reserved name",
+      start: reservedParam.start,
+      end: reservedParam.end
+    }];
+  }
+  if (callbackDepth >= maxCallbackDepth) {
+    return [{
+      message: "Callbacks may not be nested more than " + maxCallbackDepth + " levels deep",
+      start: node.start,
+      end: node.end
+    }];
+  }
+  var params = node.params.map(function (x) {
+    return x.name;
+  }).concat(extraParams);
+  callbackDepth++;
+  var result = isSafe(node.body, allowedVariables, params);
+  callbackDepth--;
+  return result;
+}
 function isADependency(node, allowedVariables) {
   return node.object.type == "Identifier" && node.property.type == "Identifier" && allowedVariables.indexOf(node.object.name + "." + node.property.name) != -1;
 }
@@ -6821,7 +6897,7 @@ function isSafeInstanceProperty(propertyNode) {
   return allowedProperties.indexOf(propertyNode.name) > -1;
 }
 function isSafeInstanceMethod(propertyNode) {
-  if (allowedMethods.indexOf(propertyNode.name) == -1) {
+  if (!allowedMethods.has(propertyNode.name)) {
     return [{
       message: "Unidentified instance method: " + propertyNode.name,
       start: propertyNode.start,
@@ -6860,7 +6936,11 @@ function isSafeStaticProperty(node) {
         return [];
       }
   }
-  return [];
+  return [{
+    message: "Unidentified static property for " + node.object.name,
+    start: node.start,
+    end: node.end
+  }];
 }
 function isSafeStaticFunction(calleeNode) {
   switch (calleeNode.object.name) {
@@ -6915,7 +6995,11 @@ function isSafeStaticFunction(calleeNode) {
         return [];
       }
   }
-  return [];
+  return [{
+    message: "Unidentified static method for " + calleeNode.object.name,
+    start: calleeNode.start,
+    end: calleeNode.end
+  }];
 }
 function mergeResults() {
   var result = [];
@@ -6931,13 +7015,6 @@ function mergeResults() {
 }
 function validateProgram(node, allowedVariables, extraParams) {
   var result = [];
-  if (node.body.directive) {
-    result.push({
-      message: "directives are not allowed",
-      start: node.start,
-      end: node.end
-    });
-  }
   node.body.forEach(function (element) {
     var isElementSafe = isSafe(element, allowedVariables, extraParams);
     if (isElementSafe && isElementSafe.length) {
