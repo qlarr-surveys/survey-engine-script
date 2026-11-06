@@ -3,6 +3,8 @@ import * as acorn from "acorn";
 import {
   allowedIdentifiers,
   unaryOperators,
+  binaryOperators,
+  reservedParams,
   identifiersWithNew,
   identifiersWithStaticMethods,
   identifiersWithStaticProperties,
@@ -17,6 +19,9 @@ import {
   allowedMethods,
 } from "./constants";
 
+const maxCallbackDepth = 3;
+let callbackDepth = 0;
+
 export function validateCode(instructionList) {
   return JSON.stringify(
     JSON.parse(instructionList).map(function (instruction) {
@@ -26,6 +31,7 @@ export function validateCode(instructionList) {
 }
 
 function isSafeCode(code, allowedVariables) {
+  callbackDepth = 0;
   try {
     const ast = acorn.parse(code, { ecmaVersion: 2020 });
     if (!ast || typeof ast !== "object") {
@@ -59,7 +65,6 @@ function isSafeCode(code, allowedVariables) {
 }
 
 function isSafe(node, allowedVariables, extraParams = []) {
-  console.log(node.type);
   switch (node.type) {
     // if program validate body
     case "Program":
@@ -68,6 +73,15 @@ function isSafe(node, allowedVariables, extraParams = []) {
     // if expression validate by expression type
     case "ChainExpression":
     case "ExpressionStatement":
+      if (node.directive == "use strict") {
+        return [
+          {
+            message: "directives are not allowed",
+            start: node.start,
+            end: node.end,
+          },
+        ];
+      }
       return isSafe(node.expression, allowedVariables, extraParams);
     case "Identifier":
       if (
@@ -94,6 +108,24 @@ function isSafe(node, allowedVariables, extraParams = []) {
           },
         ];
       }
+      if (node.computed) {
+        return [
+          {
+            message: "Computed keys are not allowed",
+            start: node.start,
+            end: node.end,
+          },
+        ];
+      }
+      if ((node.key.name || node.key.value) == "__proto__") {
+        return [
+          {
+            message: "__proto__ is not allowed as a key",
+            start: node.start,
+            end: node.end,
+          },
+        ];
+      }
       return mergeResults(
         isSafe(node.key, allowedVariables, extraParams),
         isSafe(node.value, allowedVariables, extraParams)
@@ -105,12 +137,25 @@ function isSafe(node, allowedVariables, extraParams = []) {
         )
       );
 
-    case "ArrowFunctionExpression":
     case "FunctionExpression":
-      const params = node.params.map((x) => x.name).concat(extraParams);
-      return isSafe(node.body, allowedVariables, params);
+      return [
+        {
+          message: "Only arrow functions are allowed",
+          start: node.start,
+          end: node.end,
+        },
+      ];
+    case "ArrowFunctionExpression":
+      return [
+        {
+          message: "Functions are only allowed as callbacks",
+          start: node.start,
+          end: node.end,
+        },
+      ];
     case "CallExpression":
       let calleeResult = [];
+      let isInstanceCall = false;
       if (node.callee.type == "Identifier") {
         return [
           {
@@ -128,17 +173,28 @@ function isSafe(node, allowedVariables, extraParams = []) {
             end: node.end,
           },
         ];
+      } else if (node.callee.computed) {
+        return [
+          {
+            message: "Computed member expressions are not allowed",
+            start: node.callee.start,
+            end: node.callee.end,
+          },
+        ];
       } else if (isStaticMethod(node.callee)) {
         calleeResult = isSafeStaticFunction(node.callee);
       } else {
+        isInstanceCall = true;
         calleeResult = mergeResults(
           isSafe(node.callee.object, allowedVariables, extraParams),
           isSafeInstanceMethod(node.callee.property)
         );
       }
       let callExpressionArguments = mergeResults(
-        ...node.arguments.map((element) =>
-          isSafe(element, allowedVariables, extraParams)
+        ...node.arguments.map((element, index) =>
+          isInstanceCall && isCallback(element, node.callee.property, index)
+            ? isSafeCallback(element, allowedVariables, extraParams)
+            : isSafe(element, allowedVariables, extraParams)
         )
       );
       return mergeResults(calleeResult, callExpressionArguments);
@@ -187,6 +243,15 @@ function isSafe(node, allowedVariables, extraParams = []) {
       );
     // literals are safe on of their own
     case "Literal":
+      if (node.bigint !== undefined) {
+        return [
+          {
+            message: "BigInt literals are not allowed",
+            start: node.start,
+            end: node.end,
+          },
+        ];
+      }
       return [];
     case "UnaryExpression":
       if (unaryOperators.indexOf(node.operator) == -1)
@@ -205,6 +270,15 @@ function isSafe(node, allowedVariables, extraParams = []) {
       return isSafe(node.argument, allowedVariables, extraParams);
     case "LogicalExpression":
     case "BinaryExpression":
+      if (binaryOperators.indexOf(node.operator) == -1) {
+        return [
+          {
+            message: node.operator + " operator is not allowed",
+            start: node.start,
+            end: node.end,
+          },
+        ];
+      }
       return mergeResults(
         isSafe(node.left, allowedVariables, extraParams),
         isSafe(node.right, allowedVariables, extraParams)
@@ -300,6 +374,69 @@ function isSafe(node, allowedVariables, extraParams = []) {
   }
 }
 
+function isCallback(node, methodNode, index) {
+  if (node.type != "ArrowFunctionExpression") {
+    return false;
+  }
+  return allowedMethods.get(methodNode.name) === index;
+}
+
+function isReservedParam(name, allowedVariables) {
+  return (
+    reservedParams.indexOf(name) > -1 ||
+    allowedVariables.some((x) => x.split(".")[0] == name)
+  );
+}
+
+function isSafeCallback(node, allowedVariables, extraParams) {
+  if (node.async) {
+    return [
+      {
+        message: "Async functions are not allowed",
+        start: node.start,
+        end: node.end,
+      },
+    ];
+  }
+  const unsafeParam = node.params.find((x) => x.type != "Identifier");
+  if (unsafeParam) {
+    return [
+      {
+        message: "Only simple identifier parameters are allowed",
+        start: unsafeParam.start,
+        end: unsafeParam.end,
+      },
+    ];
+  }
+  const reservedParam = node.params.find((x) =>
+    isReservedParam(x.name, allowedVariables)
+  );
+  if (reservedParam) {
+    return [
+      {
+        message: reservedParam.name + " is a reserved name",
+        start: reservedParam.start,
+        end: reservedParam.end,
+      },
+    ];
+  }
+  if (callbackDepth >= maxCallbackDepth) {
+    return [
+      {
+        message: "Callbacks may not be nested more than " + maxCallbackDepth +
+          " levels deep",
+        start: node.start,
+        end: node.end,
+      },
+    ];
+  }
+  const params = node.params.map((x) => x.name).concat(extraParams);
+  callbackDepth++;
+  const result = isSafe(node.body, allowedVariables, params);
+  callbackDepth--;
+  return result;
+}
+
 function isADependency(node, allowedVariables) {
   return (
     node.object.type == "Identifier" &&
@@ -313,7 +450,7 @@ function isSafeInstanceProperty(propertyNode) {
 }
 
 function isSafeInstanceMethod(propertyNode) {
-  if (allowedMethods.indexOf(propertyNode.name) == -1) {
+  if (!allowedMethods.has(propertyNode.name)) {
     return [
       {
         message:
@@ -371,7 +508,13 @@ function isSafeStaticProperty(node) {
         return [];
       }
   }
-  return [];
+  return [
+    {
+      message: "Unidentified static property for " + node.object.name,
+      start: node.start,
+      end: node.end,
+    },
+  ];
 }
 
 function isSafeStaticFunction(calleeNode) {
@@ -445,7 +588,13 @@ function isSafeStaticFunction(calleeNode) {
         return [];
       }
   }
-  return [];
+  return [
+    {
+      message: "Unidentified static method for " + calleeNode.object.name,
+      start: calleeNode.start,
+      end: calleeNode.end,
+    },
+  ];
 }
 
 function mergeResults(...args) {
@@ -460,13 +609,6 @@ function mergeResults(...args) {
 
 function validateProgram(node, allowedVariables, extraParams) {
   let result = [];
-  if (node.body.directive) {
-    result.push({
-      message: "directives are not allowed",
-      start: node.start,
-      end: node.end,
-    });
-  }
   node.body.forEach((element) => {
     const isElementSafe = isSafe(element, allowedVariables, extraParams);
     if (isElementSafe && isElementSafe.length) {

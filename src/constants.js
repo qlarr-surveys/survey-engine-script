@@ -1,5 +1,30 @@
 export const allowedIdentifiers = ["undefined", "NaN", "Infinity", "-Infinity"];
 export const unaryOperators = ["+", "-", "!", "~", "typeof"];
+export const binaryOperators = [
+  "==",
+  "!=",
+  "===",
+  "!==",
+  "<",
+  "<=",
+  ">",
+  ">=",
+  "+",
+  "-",
+  "*",
+  "/",
+  "%",
+  "**",
+  "&",
+  "|",
+  "^",
+  "<<",
+  ">>",
+  ">>>",
+  "&&",
+  "||",
+  "??",
+];
 
 // static methods
 export const identifiersWithNew = ["Date", "RegExp"];
@@ -11,6 +36,11 @@ export const identifiersWithStaticMethods = [
   "QlarrScripts",
 ];
 export const identifiersWithStaticProperties = ["Number", "Math"];
+export const reservedParams = [
+  ...allowedIdentifiers,
+  ...identifiersWithNew,
+  ...identifiersWithStaticMethods,
+];
 export const dateStaticMethods = ["now", "parse", "UTC", "RegExp"];
 export const mathStaticMethods = [
   "abs",
@@ -106,117 +136,97 @@ export const allowedProperties = [
   "length", // Array
 ];
 
-export const allowedMethods = [
-  // Object methods
-  "toString", // Object
-  "toLocaleString", // Object
-
-  // Number methods
-  "toExponential", // Number
-  "toFixed", // Number
-  "toLocaleString", // Number
-  "toPrecision", // Number
-
-  // RegExp methods
-  "exec", // RegExp
-  "test", // RegExp
-  "toString", // RegExp
-
-  // Array methods
-  "at", // Array
-  "contains", // Array
-  "filter", // Array
-  "find", // Array
-  "findIndex", // Array
-  "findLast", // Array
-  "findLastIndex", // Array
-  "includes", // Array
-  "indexOf", // Array
-  "keys", // Array
-  "lastIndexOf", // Array
-  "length", // Array
-  "map", // Array
-  "pop", // Array
-  "push", // Array
-  "reduce", // Array
-  "reduceRight", // Array
-  "reverse", // Array
-  "shift", // Array
-  "slice", // Array
-  "some", // Array
-  "sort", // Array
-  "splice", // Array
-  "toReversed", // Array
-  "toSorted", // Array
-  "toSpliced", // Array
-  "toString", // Array
-
-  // String methods
-  "charAt", // String
-  "concat", // String
-  "endsWith", // String
-  "includes", // String
-  "indexOf", // String
-  "lastIndexOf", // String
-  "match", // String
-  "matchAll", // String
-  "padEnd", // String
-  "padStart", // String
-  "replace", // String
-  "replaceAll", // String
-  "search", // String
-  "slice", // String
-  "split", // String
-  "startsWith", // String
-  "substring", // String
-  "toLowerCase", // String
-  "toUpperCase", // String
-  "trim", // String
-  "trimEnd", // String
-  "trimStart", // String
-
-  // Date methods
-  "getDate", // Date
-  "getDay", // Date
-  "getFullYear", // Date
-  "getHours", // Date
-  "getMilliseconds", // Date
-  "getMinutes", // Date
-  "getMonth", // Date
-  "getSeconds", // Date
-  "getTime", // Date
-  "getTimezoneOffset", // Date
-  "getUTCDate", // Date
-  "getUTCDay", // Date
-  "getUTCFullYear", // Date
-  "getUTCHours", // Date
-  "getUTCMilliseconds", // Date
-  "getUTCMinutes", // Date
-  "getUTCMonth", // Date
-  "getUTCSeconds", // Date
-  "setDate", // Date
-  "setFullYear", // Date
-  "setHours", // Date
-  "setMilliseconds", // Date
-  "setMinutes", // Date
-  "setMonth", // Date
-  "setSeconds", // Date
-  "setTime", // Date
-  "setUTCDate", // Date
-  "setUTCFullYear", // Date
-  "setUTCHours", // Date
-  "setUTCMilliseconds", // Date
-  "setUTCMinutes", // Date
-  "setUTCMonth", // Date
-  "setUTCSeconds", // Date
-  "toDateString", // Date
-  "toISOString", // Date
-  "toJSON", // Date
-  "toLocaleDateString", // Date
-  "toLocaleString", // Date
-  "toLocaleTimeString", // Date
-  "toString", // Date
-  "toTimeString", // Date
-  "toUTCString", // Date
-];
+// every allowed instance method, mapped to the position of the function
+// argument it invokes without retaining, or null if it takes no function
+export const allowedMethods = new Map([
+  ["toString", null], // Object, RegExp, Array, Date
+  ["toLocaleString", null], // Object, Number, Date
+  ["toExponential", null], // Number
+  ["toFixed", null], // Number
+  ["toPrecision", null], // Number
+  ["exec", null], // RegExp
+  ["test", null], // RegExp
+  ["at", null], // Array
+  ["contains", null], // Array
+  ["filter", 0], // Array
+  ["find", 0], // Array
+  ["findIndex", 0], // Array
+  ["findLast", 0], // Array
+  ["findLastIndex", 0], // Array
+  ["includes", null], // Array, String
+  ["indexOf", null], // Array, String
+  ["keys", null], // Array
+  ["lastIndexOf", null], // Array, String
+  ["length", null], // Array
+  ["map", 0], // Array
+  ["pop", null], // Array
+  ["push", null], // Array
+  ["reduce", 0], // Array
+  ["reduceRight", 0], // Array
+  ["reverse", null], // Array
+  ["shift", null], // Array
+  ["slice", null], // Array, String
+  ["some", 0], // Array
+  ["sort", 0], // Array
+  ["splice", null], // Array
+  ["toReversed", null], // Array
+  ["toSorted", 0], // Array
+  ["toSpliced", null], // Array
+  ["charAt", null], // String
+  ["concat", null], // String
+  ["endsWith", null], // String
+  ["match", null], // String
+  ["matchAll", null], // String
+  ["replace", 1], // String
+  ["replaceAll", 1], // String
+  ["search", null], // String
+  ["split", null], // String
+  ["startsWith", null], // String
+  ["substring", null], // String
+  ["toLowerCase", null], // String
+  ["toUpperCase", null], // String
+  ["trim", null], // String
+  ["trimEnd", null], // String
+  ["trimStart", null], // String
+  ["getDate", null], // Date
+  ["getDay", null], // Date
+  ["getFullYear", null], // Date
+  ["getHours", null], // Date
+  ["getMilliseconds", null], // Date
+  ["getMinutes", null], // Date
+  ["getMonth", null], // Date
+  ["getSeconds", null], // Date
+  ["getTime", null], // Date
+  ["getTimezoneOffset", null], // Date
+  ["getUTCDate", null], // Date
+  ["getUTCDay", null], // Date
+  ["getUTCFullYear", null], // Date
+  ["getUTCHours", null], // Date
+  ["getUTCMilliseconds", null], // Date
+  ["getUTCMinutes", null], // Date
+  ["getUTCMonth", null], // Date
+  ["getUTCSeconds", null], // Date
+  ["setDate", null], // Date
+  ["setFullYear", null], // Date
+  ["setHours", null], // Date
+  ["setMilliseconds", null], // Date
+  ["setMinutes", null], // Date
+  ["setMonth", null], // Date
+  ["setSeconds", null], // Date
+  ["setTime", null], // Date
+  ["setUTCDate", null], // Date
+  ["setUTCFullYear", null], // Date
+  ["setUTCHours", null], // Date
+  ["setUTCMilliseconds", null], // Date
+  ["setUTCMinutes", null], // Date
+  ["setUTCMonth", null], // Date
+  ["setUTCSeconds", null], // Date
+  ["toDateString", null], // Date
+  ["toISOString", null], // Date
+  ["toJSON", null], // Date
+  ["toLocaleDateString", null], // Date
+  ["toLocaleTimeString", null], // Date
+  ["toTimeString", null], // Date
+  ["toUTCString", null], // Date
+]);
 
